@@ -13,13 +13,24 @@ public abstract class RootSecurity {
         }
     }
 
-    public static synchronized void setSecurity(RootSecurity security) {
-        check(Type.ROOT_SECURITY_REPLACE);
-        RootSecurity.security = security;
+    public static void setSecurity(RootSecurity security) {
+        synchronized (RootSecurity.class) {
+            check(Type.ROOT_SECURITY_REPLACE);
+            RootSecurity.security = security;
+        }
     }
 
 
     public abstract void checkAccess(RootSecurity.Type type) throws SecurityException;
+
+    protected void replaceSecurity(RootSecurity security) {
+        synchronized (RootSecurity.class) {
+            if (RootSecurity.security != this) {
+                throw new IllegalStateException();
+            }
+            RootSecurity.security = security;
+        }
+    }
 
 
     public enum Type {
@@ -30,6 +41,7 @@ public abstract class RootSecurity {
         ROOT_ACCESS_ALL(ROOT_ACCESS),
         ROOT_ACCESS_TRUSTED_LOOKUP(ROOT_ACCESS),
         ROOT_ACCESS_ACCESSIBLE_OBJECT(ROOT_ACCESS),
+        ROOT_ACCESS_ALLOCATE_OBJECT(ROOT_ACCESS),
         ;
 
         private final Type parent;
