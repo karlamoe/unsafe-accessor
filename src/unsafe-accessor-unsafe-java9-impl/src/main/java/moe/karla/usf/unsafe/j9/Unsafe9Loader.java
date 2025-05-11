@@ -12,6 +12,13 @@ class Unsafe9Loader {
             return jdkUnsafe.getMethod("getReference", Object.class, long.class);
         }).exceptionOrNull() == null;
 
-        return (ref ? Unsafe9Ref.class : Unsafe9Obj.class).getDeclaredConstructor().newInstance();
+        Unsafe base = (ref ? Unsafe9Ref.class : Unsafe9Obj.class).getDeclaredConstructor().newInstance();
+
+        try {
+            Class.forName("java.lang.invoke.MethodHandles$Lookup$ClassOption");
+            return new AnonymousClassFixedUnsafe(base);
+        } catch (Throwable ignored) {
+            return base;
+        }
     }
 }

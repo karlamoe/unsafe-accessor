@@ -23,7 +23,7 @@ public class CustomPostFilter implements PostDiscoveryFilter {
             children.forEach(engineDescriptor::removeChild);
             WrapperTestDescriptor wrapper = new WrapperTestDescriptor(
                     engineDescriptor.getUniqueId().appendEngine("wrapper"),
-                    Optional.ofNullable(System.getenv("USF_TEST_CATEGORY")).orElse("<UNKNOWN>")
+                    Optional.ofNullable(System.getenv("USF_TEST_CATEGORY")).orElse("<UNKNOWN>").replace('.', ' ')
             );
             children.forEach(wrapper::addChild);
 

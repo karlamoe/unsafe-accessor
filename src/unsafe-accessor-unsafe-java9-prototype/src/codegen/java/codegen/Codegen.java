@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.lang.classfile.*;
+import java.lang.classfile.attribute.SignatureAttribute;
 import java.lang.classfile.instruction.InvokeInstruction;
 import java.lang.constant.ClassDesc;
 import java.lang.constant.MethodTypeDesc;
@@ -48,6 +49,7 @@ public class Codegen {
 
         var classAbs = ClassDesc.of("moe.karla.usf.unsafe.j9.Unsafe9Abs");
         var classUsf = ClassDesc.of("jdk.internal.misc.Unsafe");
+        var classMoeUsf = ClassDesc.of("moe.karla.usf.unsafe.Unsafe");
 
         var cf = ClassFile.of();
         var model = cf.parse(Codegen.class.getResourceAsStream("/moe/karla/usf/unsafe/Unsafe.class").readAllBytes());
@@ -75,7 +77,6 @@ public class Codegen {
                         if (met.flags().has(AccessFlag.STATIC)) continue;
                         if ("getOriginalUnsafe".equals(met.methodName().stringValue())) continue;
                         if ("isJava9".equals(met.methodName().stringValue())) continue;
-                        if ("defineAnonymousClass".equals(met.methodName().stringValue())) continue;
 
                         classBuilder.withMethod(met.methodName(), met.methodType(), Modifier.PUBLIC, mh -> {
                             mh.withCode(code -> {
@@ -120,6 +121,52 @@ public class Codegen {
                         code.with(elm);
                     }
                 }))
+        );
+
+        var classDelegate = ClassDesc.of("moe.karla.usf.unsafe.j9.DelegatingUnsafe");
+
+        cf.buildTo(
+                output("moe/karla/usf/unsafe/j9/DelegatingUnsafe.class"),
+                classDelegate,
+                classBuilder -> {
+                    classBuilder.withVersion(ClassFile.JAVA_8_VERSION, 0);
+                    classBuilder.withSuperclass(classMoeUsf);
+                    classBuilder.withFlags(AccessFlag.PUBLIC);
+                    classBuilder.withField("delegate", classMoeUsf, Modifier.PROTECTED | Modifier.FINAL);
+                    classBuilder.withMethod("<init>", MethodTypeDesc.of(ClassDesc.ofDescriptor("V"), classMoeUsf), Modifier.PROTECTED, method -> {
+                        method.withCode(code -> {
+                            code.aload(0);
+                            code.invokespecial(classMoeUsf, "<init>", MethodTypeDesc.ofDescriptor("()V"), false);
+                            code.aload(0);
+                            code.aload(1);
+                            code.putfield(classDelegate, "delegate", classMoeUsf);
+                            code.return_();
+                        });
+                    });
+
+                    for (ClassElement elm : model) {
+                        if (!(elm instanceof MethodModel met)) continue;
+                        if (met.flags().has(AccessFlag.STATIC)) continue;
+                        if ("<init>".equals(met.methodName().stringValue())) continue;
+
+                        classBuilder.withMethod(met.methodName(), met.methodType(), Modifier.PUBLIC, mh -> {
+                            met.elementStream().filter(it -> it instanceof SignatureAttribute).forEach(mh::with);
+
+                            mh.withCode(code -> {
+                                code.aload(0).getfield(classDelegate, "delegate", classMoeUsf);
+
+                                var descriptor = MethodTypeDesc.ofDescriptor(met.methodType().stringValue());
+                                var slotCounter = new AtomicInteger(1);
+                                descriptor.parameterList().forEach(param -> {
+                                    var type = TypeKind.from(param);
+                                    code.loadLocal(type, slotCounter.getAndAdd(type.slotSize()));
+                                });
+                                code.invokevirtual(classMoeUsf, met.methodName().stringValue(), descriptor);
+                                code.return_(TypeKind.from(descriptor.returnType()));
+                            });
+                        });
+                    }
+                }
         );
     }
 }

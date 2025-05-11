@@ -30,7 +30,7 @@ allprojects {
     }
 
     tasks.withType<Test> {
-        outputs.upToDateWhen { false }
+        // outputs.upToDateWhen { false }
         useJUnitPlatform()
     }
 
@@ -62,6 +62,13 @@ allprojects {
                 languageVersion.set(JavaLanguageVersion.of(8))
             })
             setTestCategory("java8")
+        }
+
+        JreSearcher.searchJavaRuntimes().forEach { jre ->
+            copyTest(project, jre.name) {
+                setTestCategory(jre.name)
+                this.executable = jre.executable.toString()
+            }
         }
     }
 

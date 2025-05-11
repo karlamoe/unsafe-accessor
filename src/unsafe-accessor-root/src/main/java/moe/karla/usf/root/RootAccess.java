@@ -20,6 +20,8 @@ public class RootAccess {
     private static final MethodHandles.Lookup IMPL_LOOKUP;
     private static final MethodHandle MH_SET_ACCESSIBLE;
     private static final MethodHandle MH_ALLOCATE_OBJECT;
+    private static final MethodHandle MH_PRIVATE_LOOKUP_IN;
+    private static final MethodHandle MH_TRUSTED_LOOKUP_IN;
 
     private static MethodHandles.Lookup getTrustedFromField() throws Exception {
         Field f = MethodHandles.Lookup.class.getDeclaredField("IMPL_LOOKUP");
@@ -54,9 +56,27 @@ public class RootAccess {
 
             return getTrustedFromField();
         }).recover(RootAccess::getTrustedFromField).getOrThrow();
+        MH_PRIVATE_LOOKUP_IN = RunCatching.run(() -> {
+            if (IMPL_LOOKUP.lookupClass() == MethodHandle.class) {
+                // Open j9
+                return IMPL_LOOKUP.findConstructor(MethodHandles.Lookup.class, MethodType.methodType(void.class, Class.class));
+            } else {
+                return MethodHandles.lookup()
+                        .findVirtual(MethodHandles.Lookup.class, "in", MethodType.methodType(MethodHandles.Lookup.class, Class.class))
+                        .bindTo(IMPL_LOOKUP);
+            }
+        }).getOrThrow();
+        MH_TRUSTED_LOOKUP_IN = RunCatching.run(() -> {
+            if (IMPL_LOOKUP.lookupClass() == MethodHandle.class) {
+                // Open j9
+                return MH_PRIVATE_LOOKUP_IN;
+            } else {
+                return MethodHandles.dropArguments(MethodHandles.constant(MethodHandles.Lookup.class, IMPL_LOOKUP), 0, Class.class);
+            }
+        }).getOrThrow();
 
         MH_SET_ACCESSIBLE = RunCatching.run(() -> {
-            return IMPL_LOOKUP.in(Object.class).findVirtual(AccessibleObject.class, "setAccessible", MethodType.methodType(void.class, boolean.class));
+            return INSTANCE.privateLookupIn(AccessibleObject.class).findVirtual(AccessibleObject.class, "setAccessible", MethodType.methodType(void.class, boolean.class));
         }).getOrThrow();
 
         MH_ALLOCATE_OBJECT = RunCatching.run(() -> {
@@ -95,13 +115,12 @@ public class RootAccess {
 
     public static @NotNull MethodHandles.Lookup getTrustedLookupIn(Class<?> target) {
         RootSecurity.check(RootSecurity.Type.ROOT_ACCESS_TRUSTED_LOOKUP);
-        // TODO
-        return IMPL_LOOKUP;
+        return INSTANCE.trustedLookupIn(target);
     }
 
     public static @NotNull MethodHandles.Lookup getPrivateLookup(Class<?> target) {
         RootSecurity.check(RootSecurity.Type.ROOT_ACCESS_PRIVATE_LOOKUP);
-        return IMPL_LOOKUP.in(target);
+        return INSTANCE.privateLookupIn(target);
     }
 
     @Contract(pure = true)
@@ -111,12 +130,20 @@ public class RootAccess {
 
     @Contract(pure = true)
     public @NotNull MethodHandles.Lookup trustedLookupIn(Class<?> target) {
-        return IMPL_LOOKUP;
+        try {
+            return (MethodHandles.Lookup) MH_TRUSTED_LOOKUP_IN.invokeExact(target);
+        } catch (Throwable t) {
+            throw SneakyThrow.t(t);
+        }
     }
 
     @Contract(pure = true)
     public @NotNull MethodHandles.Lookup privateLookupIn(Class<?> target) {
-        return IMPL_LOOKUP.in(target);
+        try {
+            return (MethodHandles.Lookup) MH_PRIVATE_LOOKUP_IN.invokeExact(target);
+        } catch (Throwable t) {
+            throw SneakyThrow.t(t);
+        }
     }
     //endregion
 

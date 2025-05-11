@@ -1,5 +1,6 @@
 package moe.karla.usf.unsafe.sunlegacy;
 
+import moe.karla.usf.root.util.SneakyThrow;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
@@ -497,12 +498,20 @@ class Unsafe_Jdk8 extends moe.karla.usf.unsafe.Unsafe {
 
     @Override
     public Class<?> defineClass(String name, byte[] b, int off, int len, ClassLoader loader, ProtectionDomain protectionDomain) {
-        throw new AbstractMethodError();
+        try {
+            return (Class<?>) LegacyDefineClass0.MH_DEFINE_CLASS.invokeExact(theUnsafe, name, b, off, len, loader, protectionDomain);
+        } catch (Throwable e) {
+            throw SneakyThrow.t(e);
+        }
     }
 
     @Override
     public Class<?> defineClass0(String name, byte[] b, int off, int len, ClassLoader loader, ProtectionDomain protectionDomain) {
-        throw new AbstractMethodError();
+        try {
+            return (Class<?>) LegacyDefineClass0.MH_DEFINE_CLASS0.invokeExact(theUnsafe, name, b, off, len, loader, protectionDomain);
+        } catch (Throwable e) {
+            throw SneakyThrow.t(e);
+        }
     }
 
     @Override
