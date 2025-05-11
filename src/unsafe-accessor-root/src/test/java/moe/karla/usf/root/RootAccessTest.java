@@ -24,4 +24,11 @@ public class RootAccessTest {
         RootAccess.accessible(testMethod);
         Assertions.assertTrue(testMethod.isAccessible());
     }
+
+    @Test
+    public void testAllocateObject() {
+        Assertions.assertInstanceOf(Object.class, RootAccess.allocateObject(Object.class));
+        Assertions.assertInstanceOf(Void.class, RootAccess.allocateObject(Void.class));
+        Assertions.assertInstanceOf(System.class, RootAccess.allocateObject(System.class));
+    }
 }

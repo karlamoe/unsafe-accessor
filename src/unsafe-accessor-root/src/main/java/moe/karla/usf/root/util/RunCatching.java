@@ -1,7 +1,5 @@
 package moe.karla.usf.root.util;
 
-import java.util.concurrent.Callable;
-
 public class RunCatching<T> {
 
     private final Throwable error;
@@ -23,7 +21,7 @@ public class RunCatching<T> {
         return error;
     }
 
-    public RunCatching<T> recover(Callable<T> supplier) {
+    public RunCatching<T> recover(AnyCallable<T> supplier) {
         if (error == null && result != null) return this;
         try {
             return successful(supplier.call());
@@ -44,7 +42,7 @@ public class RunCatching<T> {
         return new RunCatching<>(throwable, null);
     }
 
-    public static <T> RunCatching<T> run(Callable<T> supplier) {
+    public static <T> RunCatching<T> run(AnyCallable<T> supplier) {
         try {
             return successful(supplier.call());
         } catch (Throwable e) {

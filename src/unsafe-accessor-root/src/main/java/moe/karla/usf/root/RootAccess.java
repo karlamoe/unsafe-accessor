@@ -14,11 +14,12 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 
-@SuppressWarnings({"JavaReflectionInvocation", "DefaultAnnotationParam", "UnusedReturnValue"})
+@SuppressWarnings({"JavaReflectionInvocation", "DefaultAnnotationParam", "UnusedReturnValue", "RedundantTypeArguments"})
 public class RootAccess {
     private static final RootAccess INSTANCE = new RootAccess();
     private static final MethodHandles.Lookup IMPL_LOOKUP;
     private static final MethodHandle MH_SET_ACCESSIBLE;
+    private static final MethodHandle MH_ALLOCATE_OBJECT;
 
     private static MethodHandles.Lookup getTrustedFromField() throws Exception {
         Field f = MethodHandles.Lookup.class.getDeclaredField("IMPL_LOOKUP");
@@ -56,6 +57,26 @@ public class RootAccess {
 
         MH_SET_ACCESSIBLE = RunCatching.run(() -> {
             return IMPL_LOOKUP.in(Object.class).findVirtual(AccessibleObject.class, "setAccessible", MethodType.methodType(void.class, boolean.class));
+        }).getOrThrow();
+
+        MH_ALLOCATE_OBJECT = RunCatching.run(() -> {
+//            jdk.internal.misc.Unsafe.getUnsafe().allocateInstance(Object.class);
+            Class<?> jdkUnsafe = Class.forName("jdk.internal.misc.Unsafe");
+            MethodHandle mhAllocate = IMPL_LOOKUP.findVirtual(
+                    jdkUnsafe, "allocateInstance", MethodType.methodType(Object.class, Class.class)
+            );
+
+            return mhAllocate.bindTo(
+                    IMPL_LOOKUP.findStatic(jdkUnsafe, "getUnsafe", MethodType.methodType(jdkUnsafe)).invoke()
+            );
+        }).recover(() -> {
+//            sun.misc.Unsafe.getUnsafe().allocateInstance(Object.class);
+            Class<?> jdkUnsafe = Class.forName("sun.misc.Unsafe");
+            MethodHandle mhAllocate = IMPL_LOOKUP.findVirtual(
+                    jdkUnsafe, "allocateInstance", MethodType.methodType(Object.class, Class.class)
+            );
+
+            return mhAllocate.bindTo(LegacySunUnsafeHelper.getLegacyUnsafe());
         }).getOrThrow();
     }
 
@@ -95,6 +116,25 @@ public class RootAccess {
         }
         return target;
     }
+    //endregion
 
+    //region Unsafe.allocateObject()
+    public static <T> T allocateObject(Class<T> klass) {
+        if (klass == null) throw new IllegalArgumentException("klass is null");
+        RootSecurity.check(RootSecurity.Type.ROOT_ACCESS_ALLOCATE_OBJECT);
+
+        return INSTANCE.allocate(klass);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T allocate(Class<T> klass) {
+        if (klass == null) throw new IllegalArgumentException("klass is null");
+
+        try {
+            return (T) (Object) MH_ALLOCATE_OBJECT.invokeExact(klass);
+        } catch (Throwable t) {
+            throw SneakyThrow.t(t);
+        }
+    }
     //endregion
 }
