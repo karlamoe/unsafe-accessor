@@ -28,6 +28,8 @@ public abstract class RootSecurity {
 
         ROOT_ACCESS(null),
         ROOT_ACCESS_ALL(ROOT_ACCESS),
+        ROOT_ACCESS_TRUSTED_LOOKUP(ROOT_ACCESS),
+        ROOT_ACCESS_ACCESSIBLE_OBJECT(ROOT_ACCESS),
         ;
 
         private final Type parent;

@@ -3,14 +3,22 @@ package moe.karla.usf.root;
 import moe.karla.usf.root.util.JreRuntime;
 import moe.karla.usf.root.util.LegacySunUnsafeHelper;
 import moe.karla.usf.root.util.RunCatching;
+import moe.karla.usf.root.util.SneakyThrow;
+import moe.karla.usf.security.RootSecurity;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
+import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 
-@SuppressWarnings("JavaReflectionInvocation")
+@SuppressWarnings({"JavaReflectionInvocation", "DefaultAnnotationParam", "UnusedReturnValue"})
 public class RootAccess {
     private static final RootAccess INSTANCE = new RootAccess();
     private static final MethodHandles.Lookup IMPL_LOOKUP;
+    private static final MethodHandle MH_SET_ACCESSIBLE;
 
     private static MethodHandles.Lookup getTrustedFromField() throws Exception {
         Field f = MethodHandles.Lookup.class.getDeclaredField("IMPL_LOOKUP");
@@ -45,10 +53,48 @@ public class RootAccess {
 
             return getTrustedFromField();
         }).recover(RootAccess::getTrustedFromField).getOrThrow();
+
+        MH_SET_ACCESSIBLE = RunCatching.run(() -> {
+            return IMPL_LOOKUP.in(Object.class).findVirtual(AccessibleObject.class, "setAccessible", MethodType.methodType(void.class, boolean.class));
+        }).getOrThrow();
     }
 
 
+    @Contract(pure = false)
     public static RootAccess getInstance() {
+        RootSecurity.check(RootSecurity.Type.ROOT_ACCESS_ALL);
         return INSTANCE;
     }
+
+    //region TrustedLookup
+    public static @NotNull MethodHandles.Lookup getTrustedLookup() {
+        RootSecurity.check(RootSecurity.Type.ROOT_ACCESS_TRUSTED_LOOKUP);
+        return IMPL_LOOKUP;
+    }
+
+    @Contract(pure = true)
+    public @NotNull MethodHandles.Lookup trustedLookup() {
+        return IMPL_LOOKUP;
+    }
+    //endregion
+
+    //region AccessibleObject.setAccessible
+    public static <T extends AccessibleObject> T accessible(T target) {
+        if (target == null) throw new IllegalArgumentException("target is null");
+        RootSecurity.check(RootSecurity.Type.ROOT_ACCESS_ACCESSIBLE_OBJECT);
+        INSTANCE.access(target);
+        return target;
+    }
+
+    public <T extends AccessibleObject> T access(T target) {
+        if (target == null) throw new IllegalArgumentException("target is null");
+        try {
+            MH_SET_ACCESSIBLE.invokeExact((AccessibleObject) target, true);
+        } catch (Throwable t) {
+            SneakyThrow.t(t);
+        }
+        return target;
+    }
+
+    //endregion
 }
