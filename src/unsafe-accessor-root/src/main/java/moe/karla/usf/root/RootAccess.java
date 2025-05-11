@@ -93,9 +93,30 @@ public class RootAccess {
         return IMPL_LOOKUP;
     }
 
+    public static @NotNull MethodHandles.Lookup getTrustedLookupIn(Class<?> target) {
+        RootSecurity.check(RootSecurity.Type.ROOT_ACCESS_TRUSTED_LOOKUP);
+        // TODO
+        return IMPL_LOOKUP;
+    }
+
+    public static @NotNull MethodHandles.Lookup getPrivateLookup(Class<?> target) {
+        RootSecurity.check(RootSecurity.Type.ROOT_ACCESS_PRIVATE_LOOKUP);
+        return IMPL_LOOKUP.in(target);
+    }
+
     @Contract(pure = true)
     public @NotNull MethodHandles.Lookup trustedLookup() {
         return IMPL_LOOKUP;
+    }
+
+    @Contract(pure = true)
+    public @NotNull MethodHandles.Lookup trustedLookupIn(Class<?> target) {
+        return IMPL_LOOKUP;
+    }
+
+    @Contract(pure = true)
+    public @NotNull MethodHandles.Lookup privateLookupIn(Class<?> target) {
+        return IMPL_LOOKUP.in(target);
     }
     //endregion
 

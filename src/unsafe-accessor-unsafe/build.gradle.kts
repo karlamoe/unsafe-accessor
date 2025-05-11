@@ -3,13 +3,13 @@ plugins {
     `java-library`
 }
 
-
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-
 dependencies {
-    implementation(project(":unsafe-accessor-security"))
+    api(project(":unsafe-accessor-unsafe-api"))
+    implementation(project(":unsafe-accessor-unsafe-java9"))
 }
+
