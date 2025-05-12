@@ -6,7 +6,13 @@ plugins {
 pluginManager.apply("unsafe-impl")
 
 
+val codegenVersion = JavaLanguageVersion.of(24)
+
+
 java {
+    toolchain {
+        languageVersion.set(codegenVersion)
+    }
     sourceCompatibility = JavaVersion.VERSION_1_9
     targetCompatibility = JavaVersion.VERSION_1_9
 }
@@ -21,9 +27,6 @@ sourceSets.register("codegen") {
     compileClasspath = sourceSets.main.get().compileClasspath
     runtimeClasspath += sourceSets.main.get().compileClasspath
 }
-
-val codegenVersion = JavaLanguageVersion.of(24)
-
 
 tasks.named<JavaCompile>("compileCodegenJava") {
     // TODO java 25 LTS
