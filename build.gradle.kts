@@ -1,5 +1,6 @@
 plugins {
     `java-base`
+    id("moe.karla.maven-publishing") version "1.2.0"
 }
 
 fun Provider<in FileCollection>.toFileCollection(): FileCollection {
@@ -7,6 +8,14 @@ fun Provider<in FileCollection>.toFileCollection(): FileCollection {
         it.from(this@toFileCollection)
     }
 }
+
+
+mavenPublishing {
+    // Add This line if you want to verify your component before publishing.
+    publishingType = moe.karla.maven.publishing.MavenPublishingExtension.PublishingType.USER_MANAGED
+    manuallyPomSetup = true
+}
+
 
 fun copyTest(project: Project, name: String, action: Action<in Test>) {
     val newTest = project.tasks.register<Test>("test${name.capitalize()}") {
@@ -68,6 +77,17 @@ allprojects {
             copyTest(project, jre.name) {
                 setTestCategory(jre.name)
                 this.executable = jre.executable.toString()
+            }
+        }
+
+
+        plugins.withId("maven-publish") {
+            configure<PublishingExtension> {
+                publications {
+                    register<MavenPublication>("maven") {
+                        from(project.components["java"])
+                    }
+                }
             }
         }
     }
