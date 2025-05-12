@@ -14,6 +14,20 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 
+/// # Root Access
+///
+/// # <b>Please think carefully before using the methods provided by this tool.</b>
+///
+/// The RootAccess util provides capabilities to access java internal including
+/// - Unlimited [AccessibleObject#setAccessible(boolean)] by [#accessible(AccessibleObject)],  [#access(AccessibleObject)]
+/// - Direct object allocation by [#allocateObject(Class)], [#allocate(Class)]
+/// - Get any private [MethodHandles.Lookup] via [#privateLookupIn(Class)], [#getPrivateLookup(Class)]
+/// - Get the highest access level [MethodHandles.Lookup] via [#getTrustedLookup()], [#trustedLookup()]
+///
+/// ## API Note
+///
+/// Each function provides static and non-static method variants.
+/// The difference is that static methods will perform an additional permission check.
 @SuppressWarnings({"JavaReflectionInvocation", "DefaultAnnotationParam", "UnusedReturnValue", "RedundantTypeArguments"})
 public class RootAccess {
     private static final RootAccess INSTANCE = new RootAccess();
