@@ -3,9 +3,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.security.MessageDigest
 import java.util.*
-import kotlin.io.path.listDirectoryEntries
-import kotlin.io.path.name
-import kotlin.io.path.pathString
+import kotlin.io.path.*
 
 object JreSearcher {
     data class JavaRuntime(
@@ -23,10 +21,20 @@ object JreSearcher {
 
         System.getProperty("user.home")?.let { userHome ->
             // intellij idea
-            Path.of(userHome, ".jdks").listDirectoryEntries().forEach { entry ->
-                result.add(entry.resolve("bin/java"))
+            val jdks = Path.of(userHome, ".jdks")
+            if (jdks.exists()) {
+                jdks.listDirectoryEntries().forEach { entry ->
+                    result.add(entry.resolve("bin/java"))
+                }
             }
         }
+        Path.of("/opt/hostedtoolcache").takeIf { it.exists() }?.let { allChain ->
+            Files.walk(allChain)
+                .filter { it.isRegularFile() }
+                .filter { it.name.removeSuffix(".exe") == "java" }
+                .forEach { result.add(it) }
+        }
+        result.removeIf { it.absolutePathString().startsWith("/opt/hostedtoolcache/CodeQL") }
 
         if (System.getProperty("os.name").contains("Windows", ignoreCase = true)) {
             result.toList()
@@ -36,14 +44,34 @@ object JreSearcher {
         }
         result.removeIf { !Files.isExecutable(it) }
 
-        return result.toSet().map { it.toRuntime() }
+        val runtimes = result.toSet().map { it.toRuntime() }
+        val resultRuntimes = mutableListOf<JavaRuntime>()
+        val runtimeNames = mutableSetOf<String>()
+        runtimes.forEach { runtime ->
+            if (runtimeNames.add(runtime.name)) {
+                resultRuntimes.add(runtime)
+            } else {
+                resultRuntimes.add(
+                    JavaRuntime(
+                        runtime.executable.toString().psha1(),
+                        runtime.executable,
+                    )
+                )
+            }
+        }
+        return resultRuntimes
     }
 
     private fun Path.toRuntime(): JavaRuntime {
         val normalizedPath = this.pathString.replace('\\', '/')
-        val regex = Regex("([^/]+)/bin/java(?:\\.exe)?$")
+        val regexps = listOf(
+            "^/opt/hostedtoolcache/(.+)/x64/bin/java$".toRegex(),
+            "([^/]+)/bin/java(?:\\.exe)?$".toRegex(),
+        )
         return JavaRuntime(
-            name = regex.find(normalizedPath)?.groups?.get(1)?.value ?: normalizedPath.psha1(),
+            name = regexps.asSequence().mapNotNull { regex ->
+                regex.find(normalizedPath)?.groups?.get(1)?.value
+            }.firstOrNull()?.replace('/', '.') ?: normalizedPath.psha1(),
             executable = this,
         )
     }

@@ -32,63 +32,62 @@ jobs:
         11
         17
         21
+      JAVA_VERSIONS_LTSH: |
+        11
+        17
+        21
+      JAVA_VERSIONS_LTSEH: |
+        17
+        21
 
     steps:
       - uses: actions/checkout@v4
-      - name: Set up JDKs
+      - name: Set up Zulu JDKs
         uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VERSIONS_ALL }}
           distribution: 'zulu'
-      - name: Set up JDKs
+      - name: Set up Dragonwell JDKs
         uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VERSIONS_LTS }}
           distribution: 'dragonwell'
-      - name: Set up JDKs
+      - name: Set up Microsoft JDKs
         uses: actions/setup-java@v4
         with:
-          java-version: ${{ env.JAVA_VERSIONS_LTS }}
+          java-version: ${{ env.JAVA_VERSIONS_LTSH }}
           distribution: 'microsoft'
-      - name: Set up JDKs
-        uses: actions/setup-java@v4
-        with:
-          java-version: ${{ env.JAVA_VERSIONS_LTS }}
-          distribution: 'microsoft'
-      - name: Set up JDKs
+      - name: Set up Corretto JDKs
         uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VERSIONS_LTS }}
           distribution: 'corretto'
-      - name: Set up JDKs
+      - name: Set up Semeru JDKs
         uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VERSIONS_LTS }}
           distribution: 'semeru'
-      - name: Set up JDKs
+      - name: Set up Oracle JDKs
         uses: actions/setup-java@v4
         with:
-          java-version: ${{ env.JAVA_VERSIONS_LTS }}
+          java-version: ${{ env.JAVA_VERSIONS_LTSEH }}
           distribution: 'oracle'
-      - name: Set up JDKs
+      - name: Set up JerBrains JDKs
         uses: actions/setup-java@v4
         with:
-          java-version: ${{ env.JAVA_VERSIONS_LTS }}
-          distribution: 'graalvm'
-      - name: Set up JDKs
-        uses: actions/setup-java@v4
-        with:
-          java-version: ${{ env.JAVA_VERSIONS_LTS }}
+          java-version: |
+            17
+            21
           distribution: 'jetbrains'
-      - name: Set up JDKs
+      - name: Set up Adopt OpenJ9 JDKs
         uses: actions/setup-java@v4
         with:
-          java-version: ${{ env.JAVA_VERSIONS_LTS }}
+          java-version: ${{ env.JAVA_VERSIONS_LTSEH }}
           distribution: 'adopt-openj9'
-      - name: Set up JDKs
+      - name: Set up Adopt JDKs
         uses: actions/setup-java@v4
         with:
-          java-version: ${{ env.JAVA_VERSIONS_LTS }}
+          java-version: ${{ env.JAVA_VERSIONS_LTSEH }}
           distribution: 'adopt'
 
       # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.

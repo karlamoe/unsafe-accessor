@@ -22,17 +22,22 @@ sourceSets.register("codegen") {
     runtimeClasspath += sourceSets.main.get().compileClasspath
 }
 
+val codegenVersion = JavaLanguageVersion.of(24)
+
 
 tasks.named<JavaCompile>("compileCodegenJava") {
     // TODO java 25 LTS
     javaCompiler.set(javaToolchains.compilerFor {
-        languageVersion.set(JavaLanguageVersion.of(24))
+        languageVersion.set(codegenVersion)
     })
-    sourceCompatibility = "24"
-    targetCompatibility = "24"
+    sourceCompatibility = codegenVersion.toString()
+    targetCompatibility = codegenVersion.toString()
 }
 
 tasks.register<JavaExec>("codegen") {
+    javaLauncher.set(javaToolchains.launcherFor {
+        languageVersion.set(codegenVersion)
+    })
     classpath = sourceSets.getByName("codegen").runtimeClasspath
     mainClass = "codegen.Codegen"
     workingDir = project.projectDir
