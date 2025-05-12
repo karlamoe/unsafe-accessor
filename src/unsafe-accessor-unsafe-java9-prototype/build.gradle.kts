@@ -24,8 +24,12 @@ sourceSets.register("codegen") {
 
 
 tasks.named<JavaCompile>("compileCodegenJava") {
-    sourceCompatibility = JavaVersion.current().toString()
-    targetCompatibility = JavaVersion.current().toString()
+    // TODO java 25 LTS
+    javaCompiler.set(javaToolchains.compilerFor {
+        languageVersion.set(JavaLanguageVersion.of(24))
+    })
+    sourceCompatibility = "24"
+    targetCompatibility = "24"
 }
 
 tasks.register<JavaExec>("codegen") {
