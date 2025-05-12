@@ -13,7 +13,8 @@ fun Provider<in FileCollection>.toFileCollection(): FileCollection {
 mavenPublishing {
     // Add This line if you want to verify your component before publishing.
     publishingType = moe.karla.maven.publishing.MavenPublishingExtension.PublishingType.USER_MANAGED
-    manuallyPomSetup = true
+
+    developer("Karlatemp", "i@karla.moe")
 }
 
 
