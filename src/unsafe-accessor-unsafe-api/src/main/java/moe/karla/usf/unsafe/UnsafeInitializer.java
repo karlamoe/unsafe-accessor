@@ -1,5 +1,7 @@
 package moe.karla.usf.unsafe;
 
+import moe.karla.usf.unsafe.impl.UnsafeProvider;
+
 import java.util.*;
 
 public class UnsafeInitializer {

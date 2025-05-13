@@ -3,7 +3,7 @@ package moe.karla.usf.unsafe.sunlegacy;
 import com.google.auto.service.AutoService;
 import moe.karla.usf.unsafe.Unsafe;
 import moe.karla.usf.unsafe.UnsafeInitializer;
-import moe.karla.usf.unsafe.UnsafeProvider;
+import moe.karla.usf.unsafe.impl.UnsafeProvider;
 
 @AutoService(UnsafeProvider.class)
 public class UnsafeJdk8Provider implements UnsafeProvider {

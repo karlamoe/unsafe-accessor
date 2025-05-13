@@ -2,7 +2,7 @@ package moe.karla.usf.unsafe.j9;
 
 import com.google.auto.service.AutoService;
 import moe.karla.usf.unsafe.Unsafe;
-import moe.karla.usf.unsafe.UnsafeProvider;
+import moe.karla.usf.unsafe.impl.UnsafeProvider;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;

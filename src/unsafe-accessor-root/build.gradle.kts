@@ -1,3 +1,5 @@
+import org.objectweb.asm.Opcodes
+
 plugins {
     java
     `java-library`
@@ -26,5 +28,6 @@ moduleGenerate {
         visitExport("moe/karla/usf/root/util", 0)
 
         visitRequire("moe.karla.unsafe.security", 0, null)
+        visitRequire("jdk.unsupported", Opcodes.ACC_STATIC_PHASE, null)
     }
 }

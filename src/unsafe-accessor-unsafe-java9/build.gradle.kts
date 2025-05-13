@@ -35,6 +35,6 @@ moduleGenerate {
         visitRequire("moe.karla.unsafe.security", 0, null)
         visitRequire("moe.karla.unsafe.unsafe", 0, null)
 
-        visitProvide("moe/karla/usf/unsafe/UnsafeProvider", "moe/karla/usf/unsafe/j9/Unsafe9Provider")
+        visitProvide("moe/karla/usf/unsafe/impl/UnsafeProvider", "moe/karla/usf/unsafe/j9/Unsafe9Provider")
     }
 }

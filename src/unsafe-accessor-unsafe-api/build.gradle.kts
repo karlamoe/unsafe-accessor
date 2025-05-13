@@ -1,3 +1,5 @@
+import org.objectweb.asm.Opcodes
+
 plugins {
     java
     `java-library`
@@ -30,13 +32,16 @@ moduleGenerate {
     init {
         visitPackage("moe/karla/usf/unsafe")
         visitPackage("moe/karla/usf/unsafe/sunlegacy")
+        visitPackage("moe/karla/usf/unsafe/impl")
         visitExport("moe/karla/usf/unsafe", 0)
+        visitExport("moe/karla/usf/unsafe/impl", 0, "moe.karla.unsafe.unsafe.j9")
 
 
         visitRequire("moe.karla.unsafe.root", 0, null)
         visitRequire("moe.karla.unsafe.security", 0, null)
+        visitRequire("jdk.unsupported", Opcodes.ACC_STATIC_PHASE, null)
 
-        visitUse("moe/karla/usf/unsafe/UnsafeProvider")
-        visitProvide("moe/karla/usf/unsafe/UnsafeProvider", "moe/karla/usf/unsafe/sunlegacy/UnsafeJdk8Provider")
+        visitUse("moe/karla/usf/unsafe/impl/UnsafeProvider")
+        visitProvide("moe/karla/usf/unsafe/impl/UnsafeProvider", "moe/karla/usf/unsafe/sunlegacy/UnsafeJdk8Provider")
     }
 }
