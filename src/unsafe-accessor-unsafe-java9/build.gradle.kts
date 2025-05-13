@@ -2,6 +2,7 @@ plugins {
     java
     `java-library`
     `maven-publish`
+    `generate-module`
 }
 
 java {
@@ -22,4 +23,18 @@ sourceSets.main {
 tasks.classes {
     outputs.upToDateWhen { false }
     dependsOn(impl.provider { impl.tasks.named("jar") })
+}
+
+moduleGenerate {
+    moduleName = "moe.karla.unsafe.unsafe.j9"
+    init {
+        visitPackage("moe/karla/usf/unsafe/j9")
+
+
+        visitRequire("moe.karla.unsafe.root", 0, null)
+        visitRequire("moe.karla.unsafe.security", 0, null)
+        visitRequire("moe.karla.unsafe.unsafe", 0, null)
+
+        visitProvide("moe/karla/usf/unsafe/UnsafeProvider", "moe/karla/usf/unsafe/j9/Unsafe9Provider")
+    }
 }

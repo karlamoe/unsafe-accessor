@@ -2,6 +2,7 @@ plugins {
     java
     `java-library`
     `maven-publish`
+    `generate-module`
 }
 
 
@@ -13,4 +14,17 @@ java {
 
 dependencies {
     implementation(project(":unsafe-accessor-security"))
+}
+
+moduleGenerate {
+    moduleName = "moe.karla.unsafe.root"
+    init {
+        visitPackage("moe/karla/usf/root")
+        visitPackage("moe/karla/usf/root/util")
+
+        visitExport("moe/karla/usf/root", 0)
+        visitExport("moe/karla/usf/root/util", 0)
+
+        visitRequire("moe.karla.unsafe.security", 0, null)
+    }
 }

@@ -12,4 +12,7 @@ java {
 dependencies {
     annotationProcessor(libs.google.autoservice)
     compileOnly(libs.google.autoservice)
+    implementation(libs.asm)
+    implementation(libs.asm.util)
+    implementation(libs.asm.commons)
 }
