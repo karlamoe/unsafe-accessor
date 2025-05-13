@@ -25,6 +25,17 @@ public class CustomPostFilter implements PostDiscoveryFilter {
                     engineDescriptor.getUniqueId().appendEngine("wrapper"),
                     Optional.ofNullable(System.getenv("USF_TEST_CATEGORY")).orElse("<UNKNOWN>").replace('.', ' ')
             );
+            try {
+                TestDescriptor descriptor = Class.forName("moe.karla.testj9.TestJ9")
+                        .asSubclass(TestDescriptor.class)
+                        .getConstructor(
+                                UniqueId.class, String.class
+                        )
+                        .newInstance(wrapper.getUniqueId().appendEngine("j9test"), "Java9Test");
+                wrapper.addChild(descriptor);
+            } catch (Throwable err) {
+                err.printStackTrace();
+            }
             children.forEach(wrapper::addChild);
 
             engineDescriptor.addChild(wrapper);

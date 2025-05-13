@@ -16,3 +16,17 @@ dependencies {
     implementation(libs.asm.util)
     implementation(libs.asm.commons)
 }
+
+val srcJ9 = sourceSets.register("j9") {
+    compileClasspath += sourceSets.main.get().compileClasspath
+
+    tasks.named<JavaCompile>(compileJavaTaskName) {
+        sourceCompatibility = "9"
+        targetCompatibility = "9"
+    }
+}
+
+sourceSets.main {
+    output.dir(srcJ9.map { it.output })
+}
+
