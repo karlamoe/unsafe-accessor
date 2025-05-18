@@ -14,5 +14,8 @@ dependencies {
     implementation(project(":unsafe-accessor-unsafe-java9"))
 
     testImplementation(libs.asm)
+    testImplementation(libs.asm.tree)
+    testImplementation(libs.asm.util)
+    testImplementation(libs.asm.commons)
 }
 
