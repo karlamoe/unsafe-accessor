@@ -1,6 +1,6 @@
 plugins {
     `java-base`
-    id("moe.karla.maven-publishing") version "1.2.1"
+    id("moe.karla.maven-publishing") version "1.3.1"
 }
 
 fun Provider<in FileCollection>.toFileCollection(): FileCollection {
@@ -89,10 +89,6 @@ allprojects {
                         from(project.components["java"])
                     }
                 }
-            }
-
-            tasks.named("publishMavenPublicationToMavenStageRepository") {
-                dependsOn("signMavenPublication")
             }
         }
     }
