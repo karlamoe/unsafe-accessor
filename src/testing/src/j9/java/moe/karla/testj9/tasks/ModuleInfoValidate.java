@@ -59,6 +59,7 @@ public class ModuleInfoValidate extends AbstractTestDescriptor implements Node<E
             for (ModuleDescriptor.Requires require : descriptor.requires()) {
                 if ("java.base".equals(require.name())) continue;
                 if ("jdk.unsupported".equals(require.name())) continue;
+                if ("java.instrument".equals(require.name())) continue;
 
                 Optional<ModuleDescriptor> req = descriptors.stream().filter(it -> it.name().equals(require.name())).findFirst();
                 Assertions.assertTrue(req.isPresent(), require.name() + " not found while validating " + descriptor.name());

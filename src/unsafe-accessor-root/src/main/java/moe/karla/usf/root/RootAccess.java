@@ -13,6 +13,9 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 
 /// # Root Access
 ///
@@ -49,23 +52,48 @@ public class RootAccess {
                 return null;
             }
 
-            Class<?> ModuleLayer$Controller = Class.forName("java.lang.ModuleLayer$Controller");
+            try {
+                return getTrustedFromField();
+            } catch (Throwable ignored) {
+            }
+
             Class<?> ClassModule = Class.forName("java.lang.Module");
-            sun.misc.Unsafe unsafe = LegacySunUnsafeHelper.getLegacyUnsafe();
-            Object layerController = unsafe.allocateInstance(ModuleLayer$Controller);
 
 
             Object moduleJavaBase = Class.class.getMethod("getModule").invoke(Object.class);
             Object moduleRootAccess = Class.class.getMethod("getModule").invoke(RootAccess.class);
 
-            Object layerJavaBase = moduleJavaBase.getClass().getMethod("getLayer").invoke(moduleJavaBase);
-            if (layerJavaBase != null) {
-                Field controllerLayerField = ModuleLayer$Controller.getDeclaredField("layer");
-                unsafe.putObject(layerController, unsafe.objectFieldOffset(controllerLayerField), layerJavaBase);
-            }
+            sun.misc.Unsafe unsafe = LegacySunUnsafeHelper.getLegacyUnsafe();
+            try {
+                Class<?> ModuleLayer$Controller = Class.forName("java.lang.ModuleLayer$Controller");
+                Object layerController = unsafe.allocateInstance(ModuleLayer$Controller);
 
-            ModuleLayer$Controller.getMethod("addOpens", ClassModule, String.class, ClassModule)
-                    .invoke(layerController, moduleJavaBase, "java.lang.invoke", moduleRootAccess);
+                Object layerJavaBase = moduleJavaBase.getClass().getMethod("getLayer").invoke(moduleJavaBase);
+                if (layerJavaBase != null) {
+                    Field controllerLayerField = ModuleLayer$Controller.getDeclaredField("layer");
+                    unsafe.putObject(layerController, unsafe.objectFieldOffset(controllerLayerField), layerJavaBase);
+                }
+
+                ModuleLayer$Controller.getMethod("addOpens", ClassModule, String.class, ClassModule)
+                        .invoke(layerController, moduleJavaBase, "java.lang.invoke", moduleRootAccess);
+            } catch (Throwable errController) {
+                try {
+                    Object instrumentation = unsafe.allocateInstance(Class.forName("sun.instrument.InstrumentationImpl"));
+                    Class.forName("java.lang.instrument.Instrumentation").getMethod(
+                            "redefineModule", ClassModule, Set.class, Map.class, Map.class, Set.class, Map.class
+                    ).invoke(instrumentation,
+                            /* module */  moduleJavaBase,
+                            /* extraReads */  Collections.emptySet(),
+                            /* extraExports */ Collections.emptyMap(),
+                            /* extraOpens */  Collections.singletonMap("java.lang.invoke", Collections.singleton(moduleRootAccess)),
+                            /* extraUses */ Collections.emptySet(),
+                            /* extraProvides */ Collections.emptyMap()
+                    );
+                } catch (Throwable errInstrument) {
+                    errController.addSuppressed(errInstrument);
+                    throw errController;
+                }
+            }
 
 
             return getTrustedFromField();

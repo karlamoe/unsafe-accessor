@@ -3,4 +3,5 @@ module moe.karla.unsafe.testing {
     requires moe.karla.unsafe.root;
     requires moe.karla.unsafe.unsafe;
     requires jdk.unsupported;
+    requires java.instrument;
 }

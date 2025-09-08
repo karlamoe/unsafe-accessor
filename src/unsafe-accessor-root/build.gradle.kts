@@ -29,5 +29,6 @@ moduleGenerate {
 
         visitRequire("moe.karla.unsafe.security", 0, null)
         visitRequire("jdk.unsupported", Opcodes.ACC_STATIC_PHASE, null)
+        visitRequire("java.instrument", Opcodes.ACC_STATIC_PHASE, null)
     }
 }
