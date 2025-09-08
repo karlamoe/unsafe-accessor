@@ -108,6 +108,3 @@ val transformJava = tasks.register<TransformJava>("transformJava") {
 compileJava {
     finalizedBy(transformJava)
 }
-
-println(buildscript.sourceFile)
-
