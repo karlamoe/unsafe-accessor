@@ -5,6 +5,7 @@ plugins {
     `java-library`
     `maven-publish`
     `generate-module`
+    `binary-compatibility`
 }
 
 

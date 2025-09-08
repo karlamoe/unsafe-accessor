@@ -22,4 +22,9 @@ public abstract class Unsafe9Abs extends Unsafe {
     public boolean isJava9() {
         return true;
     }
+
+    @Override
+    public long arrayBaseOffset(Class<?> arrayClass) {
+        return usf.arrayBaseOffset(arrayClass);
+    }
 }

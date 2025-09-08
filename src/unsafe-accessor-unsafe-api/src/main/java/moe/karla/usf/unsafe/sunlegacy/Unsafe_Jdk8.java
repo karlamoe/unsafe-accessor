@@ -477,7 +477,7 @@ class Unsafe_Jdk8 extends moe.karla.usf.unsafe.Unsafe {
     }
 
     @Override
-    public int arrayBaseOffset(Class<?> arrayClass) {
+    public long arrayBaseOffset(Class<?> arrayClass) {
         return theUnsafe.arrayBaseOffset(arrayClass);
     }
 

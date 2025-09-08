@@ -77,6 +77,7 @@ public class Codegen {
                         if (met.flags().has(AccessFlag.STATIC)) continue;
                         if ("getOriginalUnsafe".equals(met.methodName().stringValue())) continue;
                         if ("isJava9".equals(met.methodName().stringValue())) continue;
+                        if ("arrayBaseOffset".equals(met.methodName().stringValue())) continue;
 
                         classBuilder.withMethod(met.methodName(), met.methodType(), Modifier.PUBLIC, mh -> {
                             mh.withCode(code -> {
@@ -147,6 +148,7 @@ public class Codegen {
                     for (ClassElement elm : model) {
                         if (!(elm instanceof MethodModel met)) continue;
                         if (met.flags().has(AccessFlag.STATIC)) continue;
+                        if (met.flags().has(AccessFlag.SYNTHETIC)) continue;
                         if ("<init>".equals(met.methodName().stringValue())) continue;
 
                         classBuilder.withMethod(met.methodName(), met.methodType(), Modifier.PUBLIC, mh -> {

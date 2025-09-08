@@ -718,62 +718,75 @@ public abstract class Unsafe {
      * @see #getInt(Object, long)
      * @see #putInt(Object, long, int)
      */
-    public abstract int arrayBaseOffset(Class<?> arrayClass);
+    public abstract long arrayBaseOffset(Class<?> arrayClass);
+
+    public int arrayBaseOffsetCompatibility(Class<?> arrayClass) {
+        return (int) arrayBaseOffset(arrayClass);
+    }
 
 
     /**
      * The value of {@code arrayBaseOffset(boolean[].class)}
      */
-    public static final int ARRAY_BOOLEAN_BASE_OFFSET
+    public static final long ARRAY_BOOLEAN_BASE_OFFSET
             = getUnsafe0().arrayBaseOffset(boolean[].class);
+    public static final int ARRAY_BOOLEAN_BASE_OFFSET_Compatibility = (int) ARRAY_BOOLEAN_BASE_OFFSET;
 
     /**
      * The value of {@code arrayBaseOffset(byte[].class)}
      */
-    public static final int ARRAY_BYTE_BASE_OFFSET
+    public static final long ARRAY_BYTE_BASE_OFFSET
             = getUnsafe0().arrayBaseOffset(byte[].class);
+    public static final int ARRAY_BYTE_BASE_OFFSET_Compatibility = (int) ARRAY_BYTE_BASE_OFFSET;
 
     /**
      * The value of {@code arrayBaseOffset(short[].class)}
      */
-    public static final int ARRAY_SHORT_BASE_OFFSET
+    public static final long ARRAY_SHORT_BASE_OFFSET
             = getUnsafe0().arrayBaseOffset(short[].class);
+    public static final int ARRAY_SHORT_BASE_OFFSET_Compatibility = (int) ARRAY_SHORT_BASE_OFFSET;
 
     /**
      * The value of {@code arrayBaseOffset(char[].class)}
      */
-    public static final int ARRAY_CHAR_BASE_OFFSET
+    public static final long ARRAY_CHAR_BASE_OFFSET
             = getUnsafe0().arrayBaseOffset(char[].class);
+    public static final int ARRAY_CHAR_BASE_OFFSET_Compatibility = (int) ARRAY_CHAR_BASE_OFFSET;
 
     /**
      * The value of {@code arrayBaseOffset(int[].class)}
      */
-    public static final int ARRAY_INT_BASE_OFFSET
+    public static final long ARRAY_INT_BASE_OFFSET
             = getUnsafe0().arrayBaseOffset(int[].class);
+    public static final int ARRAY_INT_BASE_OFFSET_Compatibility = (int) ARRAY_INT_BASE_OFFSET;
 
     /**
      * The value of {@code arrayBaseOffset(long[].class)}
      */
-    public static final int ARRAY_LONG_BASE_OFFSET
+    public static final long ARRAY_LONG_BASE_OFFSET
             = getUnsafe0().arrayBaseOffset(long[].class);
+    public static final int ARRAY_LONG_BASE_OFFSET_Compatibility = (int) ARRAY_LONG_BASE_OFFSET;
 
     /**
      * The value of {@code arrayBaseOffset(float[].class)}
      */
-    public static final int ARRAY_FLOAT_BASE_OFFSET
+    public static final long ARRAY_FLOAT_BASE_OFFSET
             = getUnsafe0().arrayBaseOffset(float[].class);
+    public static final int ARRAY_FLOAT_BASE_OFFSET_Compatibility = (int) ARRAY_FLOAT_BASE_OFFSET;
 
     /**
      * The value of {@code arrayBaseOffset(double[].class)}
      */
-    public static final int ARRAY_DOUBLE_BASE_OFFSET
+    public static final long ARRAY_DOUBLE_BASE_OFFSET
             = getUnsafe0().arrayBaseOffset(double[].class);
+    public static final int ARRAY_DOUBLE_BASE_OFFSET_Compatibility = (int) ARRAY_DOUBLE_BASE_OFFSET;
 
     /**
      * The value of {@code arrayBaseOffset(Object[].class)}
      */
-    public static final int ARRAY_OBJECT_BASE_OFFSET
+    public static final long ARRAY_OBJECT_BASE_OFFSET
             = getUnsafe0().arrayBaseOffset(Object[].class);
+    public static final int ARRAY_OBJECT_BASE_OFFSET_Compatibility = (int) ARRAY_OBJECT_BASE_OFFSET;
 
     /**
      * Reports the scale factor for addressing elements in the storage

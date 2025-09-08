@@ -3,6 +3,9 @@ package moe.karla.usf.unsafe.j9;
 import moe.karla.usf.root.util.RunCatching;
 import moe.karla.usf.unsafe.Unsafe;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+
 
 class Unsafe9Loader {
     static Unsafe load() throws Throwable {
@@ -16,9 +19,16 @@ class Unsafe9Loader {
 
         try {
             Class.forName("java.lang.invoke.MethodHandles$Lookup$ClassOption");
-            return new AnonymousClassFixedUnsafe(base);
+            base = new AnonymousClassFixedUnsafe(base);
         } catch (Throwable ignored) {
-            return base;
         }
+
+        try {
+            MethodHandles.lookup().findVirtual(jdkUnsafe, "arrayBaseOffset", MethodType.methodType(long.class, Class.class));
+            base = new ArrayBaseOffsetLongUnsafe(base);
+        } catch (Throwable ignored) {
+        }
+
+        return base;
     }
 }
