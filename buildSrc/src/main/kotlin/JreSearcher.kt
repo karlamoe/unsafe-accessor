@@ -1,3 +1,4 @@
+import org.gradle.api.Project
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -11,7 +12,7 @@ object JreSearcher {
         val executable: Path,
     )
 
-    fun searchJavaRuntimes(): List<JavaRuntime> {
+    fun searchJavaRuntimes(project: Project): List<JavaRuntime> {
         val result = mutableListOf<Path>()
         result.addAll(searchFromPath())
 
@@ -36,10 +37,28 @@ object JreSearcher {
         }
         result.removeIf { it.absolutePathString().startsWith("/opt/hostedtoolcache/CodeQL") }
 
+        project.rootProject.file("jdks.txt").toPath()
+            .takeIf { it.exists() }
+            ?.readText().orEmpty()
+            .splitToSequence('\n')
+            .filter { it.isNotBlank() }
+            .filter { !it.startsWith("#") }
+            .map { Path.of(it.trim()) }
+            .filter { it.exists() }
+            .flatMap { path ->
+                Files.walk(path)
+                    .filter { it.isRegularFile() }
+                    .filter { it.name.removeSuffix(".exe") == "java" }
+                    .iterator()
+                    .asSequence()
+            }
+            .forEach { result.add(it) }
+
+
         if (System.getProperty("os.name").contains("Windows", ignoreCase = true)) {
             result.toList()
                 .also { result.clear() }
-                .map { it.resolveSibling(it.name + ".exe") }
+                .map { it.resolveSibling(it.name.removeSuffix(".exe") + ".exe") }
                 .forEach { result.add(it) }
         }
         result.removeIf { !Files.isExecutable(it) }

@@ -74,7 +74,7 @@ allprojects {
             setTestCategory("java8")
         }
 
-        JreSearcher.searchJavaRuntimes().forEach { jre ->
+        JreSearcher.searchJavaRuntimes(project).forEach { jre ->
             copyTest(project, jre.name) {
                 setTestCategory(jre.name)
                 this.executable = jre.executable.toString()
