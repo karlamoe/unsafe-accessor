@@ -69,14 +69,22 @@ public class UnsafeMethodResolvationTest {
         }
 
         private void doVerify(Class<?> type, Object instance, String name, MethodType methodType, boolean isStatic) throws Throwable {
-            System.out.println("Checking " + type + "." + methodType.toMethodDescriptorString());
+            System.out.println("Checking " + type + "." + name + methodType.toMethodDescriptorString());
+
+            if (type.getClassLoader() == null) {
+                System.out.println("  Ignored: System class call");
+                return;
+            }
+
             checkMethodAvailable:
             {
                 MethodHandles.Lookup lookup = RootAccess.getTrustedLookupIn(type);
                 if (isStatic) {
                     lookup.findStatic(type, name, methodType);
+                    System.out.println("  Static  Method available");
                 } else {
                     lookup.findVirtual(type, name, methodType);
+                    System.out.println("  Virtual Method available");
                 }
             }
 
@@ -105,18 +113,30 @@ public class UnsafeMethodResolvationTest {
 
                     @Override
                     public BasicValue naryOperation(AbstractInsnNode insn, List<? extends BasicValue> values) throws AnalyzerException {
-                        if (insn.getOpcode() == Opcodes.INVOKEVIRTUAL && values.get(0) instanceof GetField) {
+                        if (insn.getOpcode() == Opcodes.INVOKEVIRTUAL) {
                             try {
-                                GetField getFieldType = (GetField) values.get(0);
                                 MethodInsnNode met = (MethodInsnNode) insn;
-                                Object obj = RootAccess.getPrivateLookup(type).findGetter(type, getFieldType.name,
-                                        Class.forName(getFieldType.getType().getClassName())
-                                ).invoke(instance);
+                                if (!isStatic && values.get(0) instanceof GetField && instance != null) {
+                                    GetField getFieldType = (GetField) values.get(0);
+                                    Object obj = RootAccess.getPrivateLookup(type).findGetter(type, getFieldType.name,
+                                            Class.forName(getFieldType.getType().getClassName())
+                                    ).invoke(instance);
 
 
-                                doVerify(obj.getClass(), obj, met.name, MethodType.fromMethodDescriptorString(met.desc, getClass().getClassLoader()), false);
+                                    doVerify(obj.getClass(), obj, met.name, MethodType.fromMethodDescriptorString(met.desc, getClass().getClassLoader()), false);
+                                } else {
+                                    doVerify(Class.forName(met.owner.replace('/', '.')), null, met.name, MethodType.fromMethodDescriptorString(met.desc, getClass().getClassLoader()), false);
+                                }
                             } catch (Throwable t) {
                                 throw new RuntimeException(t);
+                            }
+                        }
+                        if (insn.getOpcode() == Opcodes.INVOKESTATIC) {
+                            try {
+                                MethodInsnNode met = (MethodInsnNode) insn;
+                                doVerify(Class.forName(met.owner.replace('/', '.')), null, met.name, MethodType.fromMethodDescriptorString(met.desc, getClass().getClassLoader()), true);
+                            } catch (Throwable e) {
+                                throw new RuntimeException(e);
                             }
                         }
                         return super.naryOperation(insn, values);
