@@ -12,6 +12,7 @@ includeProject("unsafe-accessor-unsafe-java9-prototype")
 includeProject("unsafe-accessor-unsafe-java9-impl")
 includeProject("unsafe-accessor-unsafe-java9")
 includeProject("unsafe-accessor-unsafe")
+includeProject("unsafe-accessor-module-editor")
 includeProject("testing")
 includeProject("module-testing")
 

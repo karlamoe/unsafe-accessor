@@ -1,5 +1,7 @@
 package moe.karla.usf.root.util;
 
+import java.util.function.Function;
+
 public class RunCatching<T> {
 
     private final Throwable error;
@@ -42,6 +44,17 @@ public class RunCatching<T> {
 
             this.error.addSuppressed(e);
             return this;
+        }
+    }
+
+    public <R> RunCatching<R> map(Function<? super T, ? extends R> function) {
+        if (error != null || result == null) { //noinspection unchecked
+            return (RunCatching<R>) this;
+        }
+        try {
+            return successful(function.apply(result));
+        } catch (Throwable e) {
+            return failure(e);
         }
     }
 
