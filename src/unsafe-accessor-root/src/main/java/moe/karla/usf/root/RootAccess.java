@@ -163,6 +163,9 @@ public class RootAccess {
     }
 
 
+    /// Get the instance of [RootAccess] for calling permissionless methods.
+    ///
+    /// Permission [RootSecurity.Type#ROOT_ACCESS_ALL] required.
     @Contract(pure = false)
     public static RootAccess getInstance() {
         RootSecurity.check(RootSecurity.Type.ROOT_ACCESS_ALL);
@@ -170,26 +173,59 @@ public class RootAccess {
     }
 
     //region TrustedLookup
+
+
+    /// Get the original [Trusted Lookup][MethodHandles.Lookup].
+    ///
+    /// Permission [RootSecurity.Type#ROOT_ACCESS_TRUSTED_LOOKUP] required.
+    ///
+    /// @deprecated In most JDKs, TrustedLookup holds the highest privileges in
+    /// the entire JVM system.
+    /// But there are always a few exceptions. In some JDK distributions (such as OpenJ9), directly using
+    /// TrustedLookup may result in access errors. <br/>
+    /// Therefore, please consider using alternative methods: [#getTrustedLookupIn(Class)],
+    /// [#getPrivateLookup(Class)]
+    ///
+    @Deprecated
     public static @NotNull MethodHandles.Lookup getTrustedLookup() {
         RootSecurity.check(RootSecurity.Type.ROOT_ACCESS_TRUSTED_LOOKUP);
         return IMPL_LOOKUP.get();
     }
 
+    /// Get the [Trusted Lookup][MethodHandles.Lookup], or a [Private Lookup][MethodHandles#lookup()] of
+    /// provided class when the Trusted Lookup does not have root privileges.
+    ///
+    /// Permission [RootSecurity.Type#ROOT_ACCESS_TRUSTED_LOOKUP] required.
     public static @NotNull MethodHandles.Lookup getTrustedLookupIn(Class<?> target) {
         RootSecurity.check(RootSecurity.Type.ROOT_ACCESS_TRUSTED_LOOKUP);
         return INSTANCE.trustedLookupIn(target);
     }
 
+    /// Get a [Private Lookup][MethodHandles#lookup()] of provided class.
+    ///
+    /// Permission [RootSecurity.Type#ROOT_ACCESS_PRIVATE_LOOKUP] required.
+    ///
+    /// @apiNote This method is equivalent to performing [MethodHandles#lookup()] as the target.
+    /// Although the method is named to retrieve a ['private'][MethodHandles.Lookup#PRIVATE] lookup,
+    /// it actually returns a lookup with [full privilege access][MethodHandles.Lookup#hasFullPrivilegeAccess()].
     public static @NotNull MethodHandles.Lookup getPrivateLookup(Class<?> target) {
         RootSecurity.check(RootSecurity.Type.ROOT_ACCESS_PRIVATE_LOOKUP);
         return INSTANCE.privateLookupIn(target);
     }
 
+    /// [#getTrustedLookup()], no permission check.
+    ///
+    /// @see #getTrustedLookup()
+    /// @deprecated via [#getTrustedLookup()]
     @Contract(pure = true)
+    @Deprecated
     public @NotNull MethodHandles.Lookup trustedLookup() {
         return IMPL_LOOKUP.get();
     }
 
+    /// [#getTrustedLookupIn(Class)], no permission check.
+    ///
+    /// @see #getTrustedLookupIn(Class)
     @Contract(pure = true)
     public @NotNull MethodHandles.Lookup trustedLookupIn(Class<?> target) {
         try {
@@ -199,6 +235,9 @@ public class RootAccess {
         }
     }
 
+    /// [#getPrivateLookup(Class)], no permission check.
+    ///
+    /// @see #getPrivateLookup(Class)
     @Contract(pure = true)
     public @NotNull MethodHandles.Lookup privateLookupIn(Class<?> target) {
         try {
@@ -210,6 +249,16 @@ public class RootAccess {
     //endregion
 
     //region AccessibleObject.setAccessible
+
+    /// Make target [accessible][AccessibleObject#setAccessible(boolean)].
+    ///
+    /// Permission [RootSecurity.Type#ROOT_ACCESS_ACCESSIBLE_OBJECT] required.
+    ///
+    /// @apiNote Since the primary need is to elevate the privileges of [AccessibleObject],
+    /// and the need to degrade privileges is very rare, this library does not provide
+    /// methods with a flag parameter. <br/>
+    /// If you absolutely need to degrade privileges, you can directly
+    /// execute `setAccessible(false)`. You don't need privileges to demote AccessibleObject.
     public static <T extends AccessibleObject> T accessible(T target) {
         if (target == null) throw new IllegalArgumentException("target is null");
         RootSecurity.check(RootSecurity.Type.ROOT_ACCESS_ACCESSIBLE_OBJECT);
@@ -217,6 +266,9 @@ public class RootAccess {
         return target;
     }
 
+    /// [#accessible(AccessibleObject)], no permission check.
+    ///
+    /// @see #accessible(AccessibleObject)
     public <T extends AccessibleObject> T access(T target) {
         if (target == null) throw new IllegalArgumentException("target is null");
         try {
@@ -229,6 +281,15 @@ public class RootAccess {
     //endregion
 
     //region Unsafe.allocateObject()
+
+    /// Allocates a new Java object **without invoking any of the constructors for the object**.
+    ///
+    /// Permission [RootSecurity.Type#ROOT_ACCESS_ALLOCATE_OBJECT] required.
+    ///
+    /// Ref: [Java Native Interface - AllocObject](https://docs.oracle.com/en/java/javase/21/docs/specs/jni/functions.html#allocobject)
+    ///
+    /// @throws InstantiationException if the class is an interface or an abstract class.
+    @SuppressWarnings("JavadocDeclaration")
     public static <T> T allocateObject(Class<T> klass) {
         if (klass == null) throw new IllegalArgumentException("klass is null");
         RootSecurity.check(RootSecurity.Type.ROOT_ACCESS_ALLOCATE_OBJECT);
@@ -236,6 +297,9 @@ public class RootAccess {
         return INSTANCE.allocate(klass);
     }
 
+    /// [#allocateObject(Class)], no permission check.
+    ///
+    /// @see #allocateObject(Class)
     @SuppressWarnings("unchecked")
     public <T> T allocate(Class<T> klass) {
         if (klass == null) throw new IllegalArgumentException("klass is null");

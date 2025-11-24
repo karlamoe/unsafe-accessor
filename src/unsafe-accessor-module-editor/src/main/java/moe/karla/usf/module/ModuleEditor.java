@@ -9,6 +9,16 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+/// ModuleEditor is a utility for unrestrict limitations of Java Module System.
+///
+/// This class provides three main methods ([#addOpens(Object, String, Object)],
+/// [#addExports(Object, String, Object)] and [#addReads(Object, Object)]
+/// ), as well as one additional method, [#getModule(Class)].
+///
+/// For java 8 compatibility, [Object] is used to refer to the [java.lang.Module] object.
+/// This means that the Object parameter defined in this tool only accepts Module objects;
+/// passing parameters of other types will only result in a [ClassCastException].
+///
 @SuppressWarnings("Convert2MethodRef")
 public abstract class ModuleEditor {
     private static final Supplier<ModuleEditor> INSTANCE = RunCatching.run(() -> {
@@ -24,17 +34,21 @@ public abstract class ModuleEditor {
         return ThrowingHandle.makeSupplier(err);
     }).getOrThrow();
 
+    /// Get instance of [ModuleEditor]
+    ///
+    /// Permission [RootSecurity.Type#ROOT_ACCESS_TRUSTED_LOOKUP] required.
     public static ModuleEditor getInstance() {
         RootSecurity.check(RootSecurity.Type.ROOT_ACCESS_TRUSTED_LOOKUP);
         return INSTANCE.get();
     }
 
 
-    /**
-     * Get the module of provided class.
-     *
-     * @apiNote When using Java 8, returns {@link Optional#empty()} as a replacement.
-     */
+    /// Java 8 compatible [Class#getModule()].
+    ///
+    /// The purpose of this method is solely to provide Java 8 compatibility.
+    /// Use [Class#getModule()] directly for better readability.
+    ///
+    /// @apiNote Under Java 8, returns {@link Optional#empty()} as a replacement.
     @Contract(pure = true)
     public abstract @NotNull Object getModule(@NotNull Class<?> klass);
 

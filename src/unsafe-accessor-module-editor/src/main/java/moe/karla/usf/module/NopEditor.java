@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
+// for java 8
 class NopEditor extends ModuleEditor {
     @Override
     public @NotNull Object getModule(@NotNull Class<?> klass) {

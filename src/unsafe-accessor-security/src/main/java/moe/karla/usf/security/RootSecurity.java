@@ -3,7 +3,20 @@ package moe.karla.usf.security;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
+/// Secure guard of UnsafeAccessor.
+///
+/// All entry methods of UnsafeAccessor will call this class.
+/// This method can intercept unauthorized calls, or tracking unsafe calls.
+///
+/// This method doesn't offer much improvement in security.
 public abstract class RootSecurity {
+    // no-volatile: When RootSecurity requires it, there will always be an initialization
+    // process to initialize it.
+    //
+    // Since initialization typically occurs only once,
+    // and this field remains largely unchanged after initialization,
+    // adding `volatile` to it is not very meaningful and would actually degrade
+    // the library's performance.
     private static RootSecurity security;
 
     public static void check(RootSecurity.Type type) {
