@@ -1,9 +1,6 @@
 package moe.karla.usf.root;
 
-import moe.karla.usf.root.util.JreRuntime;
-import moe.karla.usf.root.util.LegacySunUnsafeHelper;
-import moe.karla.usf.root.util.RunCatching;
-import moe.karla.usf.root.util.SneakyThrow;
+import moe.karla.usf.root.util.*;
 import moe.karla.usf.security.RootSecurity;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -16,6 +13,7 @@ import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /// # Root Access
 ///
@@ -34,7 +32,7 @@ import java.util.Set;
 @SuppressWarnings({"JavaReflectionInvocation", "DefaultAnnotationParam", "UnusedReturnValue", "RedundantTypeArguments"})
 public class RootAccess {
     private static final RootAccess INSTANCE = new RootAccess();
-    private static final MethodHandles.Lookup IMPL_LOOKUP;
+    private static final Supplier<MethodHandles.Lookup> IMPL_LOOKUP;
     private static final MethodHandle MH_SET_ACCESSIBLE;
     private static final MethodHandle MH_ALLOCATE_OBJECT;
     private static final MethodHandle MH_PRIVATE_LOOKUP_IN;
@@ -47,7 +45,7 @@ public class RootAccess {
     }
 
     static {
-        IMPL_LOOKUP = RunCatching.<MethodHandles.Lookup>run(() -> {
+        RunCatching<MethodHandles.Lookup> implLookup = RunCatching.<MethodHandles.Lookup>run(() -> {
             if (!JreRuntime.LEGACY_UNSAFE_AVAILABLE || JreRuntime.JAVA_8) {
                 return null;
             }
@@ -97,48 +95,70 @@ public class RootAccess {
 
 
             return getTrustedFromField();
-        }).recover(RootAccess::getTrustedFromField).getOrThrow();
+        }).recover(RootAccess::getTrustedFromField);
+
+        if (implLookup.exceptionOrNull() != null) {
+            IMPL_LOOKUP = ThrowingHandle.makeSupplier(implLookup.exceptionOrNull());
+        } else {
+            MethodHandles.Lookup lookup = implLookup.getOrThrow();
+            IMPL_LOOKUP = () -> lookup;
+        }
+
         MH_PRIVATE_LOOKUP_IN = RunCatching.run(() -> {
-            if (IMPL_LOOKUP.lookupClass() == MethodHandle.class) {
+            MethodHandles.Lookup lookup = IMPL_LOOKUP.get();
+            if (lookup.lookupClass() == MethodHandle.class) {
                 // Open j9
-                return IMPL_LOOKUP.findConstructor(MethodHandles.Lookup.class, MethodType.methodType(void.class, Class.class));
+                return lookup.findConstructor(MethodHandles.Lookup.class, MethodType.methodType(void.class, Class.class));
             } else {
                 return MethodHandles.lookup()
                         .findVirtual(MethodHandles.Lookup.class, "in", MethodType.methodType(MethodHandles.Lookup.class, Class.class))
-                        .bindTo(IMPL_LOOKUP);
+                        .bindTo(lookup);
             }
+        }).recover(err -> {
+            return ThrowingHandle.makeThrow(err, MethodType.methodType(MethodHandles.Lookup.class, Class.class));
         }).getOrThrow();
         MH_TRUSTED_LOOKUP_IN = RunCatching.run(() -> {
-            if (IMPL_LOOKUP.lookupClass() == MethodHandle.class) {
+            MethodHandles.Lookup lookup = IMPL_LOOKUP.get();
+            if (lookup.lookupClass() == MethodHandle.class) {
                 // Open j9
                 return MH_PRIVATE_LOOKUP_IN;
             } else {
-                return MethodHandles.dropArguments(MethodHandles.constant(MethodHandles.Lookup.class, IMPL_LOOKUP), 0, Class.class);
+                return MethodHandles.dropArguments(MethodHandles.constant(MethodHandles.Lookup.class, lookup), 0, Class.class);
             }
+        }).recover(err -> {
+            return ThrowingHandle.makeThrow(err, MethodType.methodType(MethodHandles.Lookup.class, Class.class));
         }).getOrThrow();
 
         MH_SET_ACCESSIBLE = RunCatching.run(() -> {
             return INSTANCE.privateLookupIn(AccessibleObject.class).findVirtual(AccessibleObject.class, "setAccessible", MethodType.methodType(void.class, boolean.class));
+        }).recover(err -> {
+            return ThrowingHandle.makeThrow(err, MethodType.methodType(void.class, AccessibleObject.class, boolean.class));
         }).getOrThrow();
 
         MH_ALLOCATE_OBJECT = RunCatching.run(() -> {
+            MethodHandles.Lookup lookup = IMPL_LOOKUP.get();
+
 //            jdk.internal.misc.Unsafe.getUnsafe().allocateInstance(Object.class);
             Class<?> jdkUnsafe = Class.forName("jdk.internal.misc.Unsafe");
-            MethodHandle mhAllocate = IMPL_LOOKUP.findVirtual(
+            MethodHandle mhAllocate = lookup.findVirtual(
                     jdkUnsafe, "allocateInstance", MethodType.methodType(Object.class, Class.class)
             );
 
             return mhAllocate.bindTo(
-                    IMPL_LOOKUP.findStatic(jdkUnsafe, "getUnsafe", MethodType.methodType(jdkUnsafe)).invoke()
+                    lookup.findStatic(jdkUnsafe, "getUnsafe", MethodType.methodType(jdkUnsafe)).invoke()
             );
         }).recover(() -> {
+            MethodHandles.Lookup lookup = IMPL_LOOKUP.get();
+
 //            sun.misc.Unsafe.getUnsafe().allocateInstance(Object.class);
             Class<?> jdkUnsafe = Class.forName("sun.misc.Unsafe");
-            MethodHandle mhAllocate = IMPL_LOOKUP.findVirtual(
+            MethodHandle mhAllocate = lookup.findVirtual(
                     jdkUnsafe, "allocateInstance", MethodType.methodType(Object.class, Class.class)
             );
 
             return mhAllocate.bindTo(LegacySunUnsafeHelper.getLegacyUnsafe());
+        }).recover(err -> {
+            return ThrowingHandle.makeThrow(err, MethodType.methodType(Object.class, Class.class));
         }).getOrThrow();
     }
 
@@ -152,7 +172,7 @@ public class RootAccess {
     //region TrustedLookup
     public static @NotNull MethodHandles.Lookup getTrustedLookup() {
         RootSecurity.check(RootSecurity.Type.ROOT_ACCESS_TRUSTED_LOOKUP);
-        return IMPL_LOOKUP;
+        return IMPL_LOOKUP.get();
     }
 
     public static @NotNull MethodHandles.Lookup getTrustedLookupIn(Class<?> target) {
@@ -167,7 +187,7 @@ public class RootAccess {
 
     @Contract(pure = true)
     public @NotNull MethodHandles.Lookup trustedLookup() {
-        return IMPL_LOOKUP;
+        return IMPL_LOOKUP.get();
     }
 
     @Contract(pure = true)

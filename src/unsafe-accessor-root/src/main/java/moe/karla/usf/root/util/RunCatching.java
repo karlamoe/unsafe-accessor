@@ -33,6 +33,18 @@ public class RunCatching<T> {
         }
     }
 
+    public RunCatching<T> recover(ThrowingFunction<? super Throwable, T> function) {
+        if (error == null && result != null) return this;
+        try {
+            return successful(function.apply(error));
+        } catch (Throwable e) {
+            if (error == null) return failure(e);
+
+            this.error.addSuppressed(e);
+            return this;
+        }
+    }
+
 
     public static <T> RunCatching<T> successful(T value) {
         return new RunCatching<>(null, value);
