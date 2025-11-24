@@ -42,6 +42,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - run: 'df -h'
+      - run: 'sudo bash .github/free.sh'
       - name: Set up Zulu JDKs
         uses: actions/setup-java@v4
         with:
@@ -89,6 +91,8 @@ jobs:
         with:
           java-version: ${{ env.JAVA_VERSIONS_LTSEH }}
           distribution: 'adopt'
+
+      - run: 'df -h'
 
       # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
       # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
