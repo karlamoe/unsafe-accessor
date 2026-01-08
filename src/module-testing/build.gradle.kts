@@ -17,6 +17,11 @@ application {
 
 dependencies {
     implementation(project(":unsafe-accessor-unsafe"))
+    implementation(project(":unsafe-accessor-module-editor"))
+}
+
+configurations.implementation {
+    extendsFrom(configurations.junit5.get())
 }
 
 tasks.test {
