@@ -18,6 +18,7 @@ application {
 dependencies {
     implementation(project(":unsafe-accessor-unsafe"))
     implementation(project(":unsafe-accessor-module-editor"))
+    implementation(project(":unsafe-accessor-definer"))
 }
 
 configurations.implementation {
