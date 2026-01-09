@@ -2,6 +2,7 @@ plugins {
     java
     `java-library`
     `binary-compatibility`
+    id("moe.karla.asm")
 }
 
 
@@ -12,29 +13,22 @@ java {
 
 pluginManager.apply("unsafe-impl")
 
-val deps = project.project(":unsafe-accessor-unsafe-java9-prototype").files(
-    "build/generated/codegen",
-    "build/classes/java/main",
-)
 
 dependencies {
+    asm(project(":unsafe-accessor-unsafe-api"))
+
     implementation(project(":unsafe-accessor-security"))
     api(project(":unsafe-accessor-unsafe-api"))
 
     compileOnly(libs.google.autoservice)
     annotationProcessor(libs.google.autoservice)
-
-    compileOnly(deps)
 }
 
-sourceSets.main {
-    output.dir(deps)
-}
 
 tasks.compileJava {
     sourceCompatibility = "9"
     targetCompatibility = "9"
 
-    dependsOn(":unsafe-accessor-unsafe-java9-prototype:classes")
+    options.compilerArgs.add("-Xdiags:verbose")
 }
 

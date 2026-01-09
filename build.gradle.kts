@@ -1,6 +1,9 @@
+import moe.karla.asm.gradle.AsmExtension
+
 plugins {
     `java-base`
     id("moe.karla.maven-publishing") version "1.3.1"
+    id("moe.karla.asm") version "0.2.0" apply false
 }
 
 fun Provider<in FileCollection>.toFileCollection(): FileCollection {
@@ -93,5 +96,17 @@ allprojects {
         }
     }
 
+
+    plugins.withId("moe.karla.asm") {
+        extensions.configure<AsmExtension> {
+            toolchain {
+                languageVersion.set(JavaLanguageVersion.of(21))
+            }
+        }
+        tasks.named<JavaCompile>("compileAsmJava") {
+            sourceCompatibility = "21"
+            targetCompatibility = "21"
+        }
+    }
 }
 

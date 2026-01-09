@@ -1,4 +1,4 @@
-rootProject.name = "unsafe-accessor"
+rootProject.name = "usf-accessor"
 
 fun includeProject(name: String) {
     include(":$name")
@@ -8,9 +8,9 @@ fun includeProject(name: String) {
 includeProject("unsafe-accessor-security")
 includeProject("unsafe-accessor-root")
 includeProject("unsafe-accessor-unsafe-api")
-includeProject("unsafe-accessor-unsafe-java9-prototype")
 includeProject("unsafe-accessor-unsafe-java9-impl")
 includeProject("unsafe-accessor-unsafe-java9")
+
 includeProject("unsafe-accessor-unsafe")
 includeProject("unsafe-accessor-module-editor")
 includeProject("unsafe-accessor-definer")

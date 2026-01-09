@@ -720,7 +720,7 @@ public abstract class Unsafe {
      */
     public abstract long arrayBaseOffset(Class<?> arrayClass);
 
-    public int arrayBaseOffsetCompatibility(Class<?> arrayClass) {
+    public final int arrayBaseOffsetCompatibility(Class<?> arrayClass) {
         return (int) arrayBaseOffset(arrayClass);
     }
 
