@@ -1,5 +1,10 @@
 rootProject.name = "usf-accessor"
 
+pluginManagement {
+    includeBuild("vendor/jmh-gradle")
+}
+
+
 fun includeProject(name: String) {
     include(":$name")
     project(":$name").projectDir = rootProject.projectDir.resolve("src/$name")
@@ -16,4 +21,5 @@ includeProject("unsafe-accessor-module-editor")
 includeProject("unsafe-accessor-definer")
 includeProject("testing")
 includeProject("module-testing")
+includeProject("jmh-test")
 
