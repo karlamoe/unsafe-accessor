@@ -41,6 +41,7 @@ public class UnsafeDynamicGenerator extends ClassGenerator implements Opcodes {
                     method.name,
                     method.desc, method.signature, null
             );
+            mv.visitAnnotation("Ljdk/internal/vm/annotation/ForceInline;", true);
 
             AsmUtil.pushArguments(mv, 1, Type.getArgumentTypes(method.desc));
 
