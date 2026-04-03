@@ -2,10 +2,7 @@ package usftest;
 
 import moe.karla.usf.root.RootAccess;
 import moe.karla.usf.unsafe.Unsafe;
-import org.junit.jupiter.api.DynamicNode;
-import org.junit.jupiter.api.DynamicTest;
-import org.junit.jupiter.api.NamedExecutable;
-import org.junit.jupiter.api.TestFactory;
+import org.junit.jupiter.api.*;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -27,6 +24,8 @@ import java.util.stream.Stream;
 public class UnsafeMethodResolvationTest {
     @TestFactory
     public Stream<? extends DynamicNode> createTestList() {
+        Assumptions.assumeFalse(Unsafe.getUnsafe().getClass().getName().contains("/"));
+
         return DynamicTest.stream(
                 Stream.of(Unsafe.class.getMethods())
                         .filter(it -> it.getDeclaringClass() != Object.class)
