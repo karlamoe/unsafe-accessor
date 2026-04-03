@@ -47,7 +47,7 @@ public class RootAccess {
 
     static {
         RunCatching<MethodHandles.Lookup> implLookup = RunCatching.<MethodHandles.Lookup>run(() -> {
-            if (!JreRuntime.LEGACY_UNSAFE_AVAILABLE || JreRuntime.JAVA_8) {
+            if (JreRuntime.JAVA_8) {
                 return null;
             }
 
@@ -56,65 +56,7 @@ public class RootAccess {
             } catch (Throwable ignored) {
             }
 
-            Class<?> ClassModule = Class.forName("java.lang.Module");
-
-
-            Object moduleJavaBase = Class.class.getMethod("getModule").invoke(Object.class);
-            Object moduleRootAccess = Class.class.getMethod("getModule").invoke(RootAccess.class);
-
-            try {
-                Class<?> ModuleLayer = Class.forName("java.lang.ModuleLayer");
-                Class<?> ModuleLayer$Controller = Class.forName("java.lang.ModuleLayer$Controller");
-
-                Constructor<?> controller = sun.reflect.ReflectionFactory.getReflectionFactory().newConstructorForSerialization(
-                        ModuleLayer$Controller,
-                        ModuleLayer$Controller.getDeclaredConstructor(ModuleLayer)
-                );
-                Object layerJavaBase = moduleJavaBase.getClass().getMethod("getLayer").invoke(moduleJavaBase);
-
-                ModuleLayer$Controller.getMethod("addOpens", ClassModule, String.class, ClassModule)
-                        .invoke(
-                                controller.newInstance(layerJavaBase),
-                                moduleJavaBase, "java.lang.invoke", moduleRootAccess
-                        );
-                return getTrustedFromField();
-            } catch (Throwable ignored) {
-            }
-
-
-            sun.misc.Unsafe unsafe = LegacySunUnsafeHelper.getLegacyUnsafe();
-            try {
-                Class<?> ModuleLayer$Controller = Class.forName("java.lang.ModuleLayer$Controller");
-                Object layerController = unsafe.allocateInstance(ModuleLayer$Controller);
-
-                Object layerJavaBase = moduleJavaBase.getClass().getMethod("getLayer").invoke(moduleJavaBase);
-                if (layerJavaBase != null) {
-                    Field controllerLayerField = ModuleLayer$Controller.getDeclaredField("layer");
-                    unsafe.putObject(layerController, unsafe.objectFieldOffset(controllerLayerField), layerJavaBase);
-                }
-
-                ModuleLayer$Controller.getMethod("addOpens", ClassModule, String.class, ClassModule)
-                        .invoke(layerController, moduleJavaBase, "java.lang.invoke", moduleRootAccess);
-            } catch (Throwable errController) {
-                try {
-                    Object instrumentation = unsafe.allocateInstance(Class.forName("sun.instrument.InstrumentationImpl"));
-                    Class.forName("java.lang.instrument.Instrumentation").getMethod(
-                            "redefineModule", ClassModule, Set.class, Map.class, Map.class, Set.class, Map.class
-                    ).invoke(instrumentation,
-                            /* module */  moduleJavaBase,
-                            /* extraReads */  Collections.emptySet(),
-                            /* extraExports */ Collections.emptyMap(),
-                            /* extraOpens */  Collections.singletonMap("java.lang.invoke", Collections.singleton(moduleRootAccess)),
-                            /* extraUses */ Collections.emptySet(),
-                            /* extraProvides */ Collections.emptyMap()
-                    );
-                } catch (Throwable errInstrument) {
-                    errController.addSuppressed(errInstrument);
-                    throw errController;
-                }
-            }
-
-
+            ModuleCracker.doCrack();
             return getTrustedFromField();
         }).recover(RootAccess::getTrustedFromField);
 
