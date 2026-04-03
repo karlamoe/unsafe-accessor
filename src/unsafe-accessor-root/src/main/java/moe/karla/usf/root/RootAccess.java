@@ -9,6 +9,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.AccessibleObject;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.Map;
@@ -60,6 +61,26 @@ public class RootAccess {
 
             Object moduleJavaBase = Class.class.getMethod("getModule").invoke(Object.class);
             Object moduleRootAccess = Class.class.getMethod("getModule").invoke(RootAccess.class);
+
+            try {
+                Class<?> ModuleLayer = Class.forName("java.lang.ModuleLayer");
+                Class<?> ModuleLayer$Controller = Class.forName("java.lang.ModuleLayer$Controller");
+
+                Constructor<?> controller = sun.reflect.ReflectionFactory.getReflectionFactory().newConstructorForSerialization(
+                        ModuleLayer$Controller,
+                        ModuleLayer$Controller.getDeclaredConstructor(ModuleLayer)
+                );
+                Object layerJavaBase = moduleJavaBase.getClass().getMethod("getLayer").invoke(moduleJavaBase);
+
+                ModuleLayer$Controller.getMethod("addOpens", ClassModule, String.class, ClassModule)
+                        .invoke(
+                                controller.newInstance(layerJavaBase),
+                                moduleJavaBase, "java.lang.invoke", moduleRootAccess
+                        );
+                return getTrustedFromField();
+            } catch (Throwable ignored) {
+            }
+
 
             sun.misc.Unsafe unsafe = LegacySunUnsafeHelper.getLegacyUnsafe();
             try {
