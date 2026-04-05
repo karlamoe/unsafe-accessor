@@ -44,53 +44,54 @@ jobs:
         21
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - run: 'df -h'
       - run: 'sudo bash .github/free.sh'
       - name: Set up Zulu JDKs
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: ${{ env.JAVA_VERSIONS_ALL }}
           distribution: 'zulu'
       - name: Set up Dragonwell JDKs
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: ${{ env.JAVA_VERSIONS_LTS }}
           distribution: 'dragonwell'
       - name: Set up Microsoft JDKs
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: ${{ env.JAVA_VERSIONS_LTSH }}
           distribution: 'microsoft'
       - name: Set up Corretto JDKs
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: ${{ env.JAVA_VERSIONS_LTS }}
           distribution: 'corretto'
       - name: Set up Semeru JDKs
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: ${{ env.JAVA_VERSIONS_LTS }}
           distribution: 'semeru'
       - name: Set up Oracle JDKs
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: ${{ env.JAVA_VERSIONS_LTSEH }}
           distribution: 'oracle'
       - name: Set up JerBrains JDKs
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: |
             17
             21
+            25
           distribution: 'jetbrains'
       - name: Set up Adopt OpenJ9 JDKs
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: ${{ env.JAVA_VERSIONS_LTSEH }}
           distribution: 'adopt-openj9'
       - name: Set up Adopt JDKs
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: ${{ env.JAVA_VERSIONS_LTSEH }}
           distribution: 'adopt'
@@ -100,7 +101,7 @@ jobs:
       # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
       # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Build with Gradle Wrapper
         run: ./gradlew build
@@ -123,9 +124,9 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up JDK 25
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '25'
           distribution: 'zulu'
