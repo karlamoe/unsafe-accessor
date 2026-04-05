@@ -11,14 +11,14 @@ abstract class UnsafeMetafactory {
     private static final List<Resolver> RESOLVERS = new ArrayList<>();
 
     interface Resolver {
-        MethodHandle resolve(MethodHandles.Lookup lookup, String name, MethodType type) throws Throwable;
+        MethodHandle resolve(MethodHandles.Lookup lookup, String name, MethodType type, boolean binding) throws Throwable;
     }
 
     static CallSite bootstrap(
             MethodHandles.Lookup lookup,
             String name, MethodType type
     ) throws Throwable {
-        return new ConstantCallSite(findMethod(lookup, name, type, true));
+        return new ConstantCallSite(findMethod(lookup, name, type, true, true));
     }
 
 
@@ -26,10 +26,10 @@ abstract class UnsafeMetafactory {
     static @UnknownNullability MethodHandle findMethod(
             MethodHandles.Lookup lookup,
             String name, MethodType type,
-            boolean failing
+            boolean failing, boolean binding
     ) throws Throwable {
         for (Resolver f : RESOLVERS) {
-            MethodHandle mh = f.resolve(lookup, name, type);
+            MethodHandle mh = f.resolve(lookup, name, type, binding);
             if (mh != null) {
                 return mh;
             }
@@ -69,7 +69,7 @@ abstract class UnsafeMetafactory {
     }
 
 
-    private static MethodHandle resolveSpecial(MethodHandles.Lookup lookup, String name, MethodType type) throws Throwable {
+    private static MethodHandle resolveSpecial(MethodHandles.Lookup lookup, String name, MethodType type, boolean binding) throws Throwable {
         if (name.equals("isJava9")) {
             return MethodHandles.constant(boolean.class, true);
         }
@@ -79,7 +79,7 @@ abstract class UnsafeMetafactory {
         return null;
     }
 
-    private static MethodHandle resolveAnonymousClassDefiner(MethodHandles.Lookup lookup, String name, MethodType type) throws Throwable {
+    private static MethodHandle resolveAnonymousClassDefiner(MethodHandles.Lookup lookup, String name, MethodType type, boolean binding) throws Throwable {
         if (name.equals("defineAnonymousClass")) {
             return lookup.findStatic(
                     Class.forName("moe.karla.usf.unsafe.j9.AnonymousClassDefinerAsHiddenClass"),
@@ -90,32 +90,33 @@ abstract class UnsafeMetafactory {
         return null;
     }
 
-    private static MethodHandle resolveAsJdk(MethodHandles.Lookup lookup, String name, MethodType type) throws Throwable {
+    private static MethodHandle resolveAsJdk(MethodHandles.Lookup lookup, String name, MethodType type, boolean binding) throws Throwable {
         try {
-            return lookup.findVirtual(jdk.internal.misc.Unsafe.class, name, type).bindTo(Unsafe9Abs.usf);
+            MethodHandle handle = lookup.findVirtual(jdk.internal.misc.Unsafe.class, name, type);
+            return binding ? handle.bindTo(Unsafe9Abs.usf) : handle;
         } catch (NoSuchMethodException ignored) {
         }
         return null;
     }
 
-    private static MethodHandle resolveAsJdkReference(MethodHandles.Lookup lookup, String name, MethodType type) throws Throwable {
+    private static MethodHandle resolveAsJdkReference(MethodHandles.Lookup lookup, String name, MethodType type, boolean binding) throws Throwable {
         String newName = name.replace("Object", "Reference");
         if (!newName.equals(name)) {
-            return findMethod(lookup, newName, type, false);
+            return findMethod(lookup, newName, type, false, binding);
         }
         return null;
     }
 
-    private static MethodHandle resolveAsJdkObject(MethodHandles.Lookup lookup, String name, MethodType type) throws Throwable {
+    private static MethodHandle resolveAsJdkObject(MethodHandles.Lookup lookup, String name, MethodType type, boolean binding) throws Throwable {
         String newName = name.replace("Reference", "Object");
         if (!newName.equals(name)) {
-            return findMethod(lookup, newName, type, false);
+            return findMethod(lookup, newName, type, false, binding);
         }
         return null;
     }
 
 
-    private static MethodHandle resolveArrayBaseOffset(MethodHandles.Lookup lookup, String name, MethodType type) throws Throwable {
+    private static MethodHandle resolveArrayBaseOffset(MethodHandles.Lookup lookup, String name, MethodType type, boolean binding) throws Throwable {
         if (name.equals("arrayBaseOffset")) {
             return lookup.findVirtual(jdk.internal.misc.Unsafe.class, "arrayBaseOffset", MethodType.methodType(int.class, Class.class))
                     .bindTo(Unsafe9Abs.usf)
@@ -124,9 +125,9 @@ abstract class UnsafeMetafactory {
         return null;
     }
 
-    private static MethodHandle resolveNoModifier(MethodHandles.Lookup lookup, String name, MethodType type) throws Throwable {
+    private static MethodHandle resolveNoModifier(MethodHandles.Lookup lookup, String name, MethodType type, boolean binding) throws Throwable {
         if (name.endsWith("Acquire")) {
-            return findMethod(lookup, name.substring(0, name.length() - "Acquire".length()), type, true);
+            return findMethod(lookup, name.substring(0, name.length() - "Acquire".length()), type, true, binding);
         }
         return null;
     }

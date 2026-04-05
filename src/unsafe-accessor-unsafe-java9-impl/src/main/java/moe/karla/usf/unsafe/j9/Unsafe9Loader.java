@@ -10,10 +10,27 @@ import java.security.ProtectionDomain;
 
 
 class Unsafe9Loader {
+    static byte[] loadClassBytecode() throws Throwable {
+
+        try {
+            Class.forName("java.lang.classfile.ClassFile");
+            return (byte[]) Class.forName("moe.karla.usf.unsafe.j9.CodegenClassFile").getDeclaredMethod("generate").invoke(null);
+        } catch (Throwable ignored) {
+        }
+
+
+        try (InputStream stream = Unsafe9Loader.class.getResourceAsStream("UnsafeDynamic.class")) {
+            assert stream != null;
+            return stream.readAllBytes();
+        }
+    }
+
     static Unsafe load() throws Throwable {
 
         try {
             MethodHandles.Lookup lookupLookup = Unsafe9Abs.rootAccess.trustedLookupIn(MethodHandles.Lookup.class);
+
+            byte[] code = loadClassBytecode();
 
 //     static native Class<?> defineClass0(ClassLoader loader,
 //                                        Class<?> lookup,
@@ -34,12 +51,6 @@ class Unsafe9Loader {
                     "defineClass0",
                     MethodType.methodType(Class.class, ClassLoader.class, Class.class, String.class, byte[].class, int.class, int.class, ProtectionDomain.class, boolean.class, int.class, Object.class)
             );
-
-            byte[] code;
-            try (InputStream stream = Unsafe9Loader.class.getResourceAsStream("UnsafeDynamic.class")) {
-                assert stream != null;
-                code = stream.readAllBytes();
-            }
             Class<?> result = (Class<?>) definer.invoke(
                     Unsafe9Loader.class.getClassLoader(),
                     Unsafe9Loader.class,

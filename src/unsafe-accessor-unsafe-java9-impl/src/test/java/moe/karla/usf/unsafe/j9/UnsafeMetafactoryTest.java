@@ -1,10 +1,12 @@
 package moe.karla.usf.unsafe.j9;
 
 import moe.karla.usf.unsafe.Unsafe;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledForJreRange;
 import org.junit.jupiter.api.condition.JRE;
 
+import java.lang.invoke.CallSite;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
@@ -25,9 +27,13 @@ class UnsafeMetafactoryTest {
             if (method.getName().equals("invokeCleaner")) continue;
             if (!Modifier.isAbstract(method.getModifiers())) continue;
 
-            UnsafeMetafactory.bootstrap(lookup, method.getName(), MethodType.methodType(
+            MethodType methodType = MethodType.methodType(
                     method.getReturnType(), method.getParameterTypes()
-            ));
+            );
+            CallSite callSite = UnsafeMetafactory.bootstrap(lookup, method.getName(), methodType);
+            Assertions.assertNotNull(callSite, method::toString);
+
+            Assertions.assertEquals(methodType, callSite.getTarget().type(), method::toString);
         }
     }
 }
