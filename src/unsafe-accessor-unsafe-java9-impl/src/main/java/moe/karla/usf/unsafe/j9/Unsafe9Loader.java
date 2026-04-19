@@ -12,10 +12,12 @@ import java.security.ProtectionDomain;
 class Unsafe9Loader {
     static byte[] loadClassBytecode() throws Throwable {
 
-        try {
-            Class.forName("java.lang.classfile.ClassFile");
-            return (byte[]) Class.forName("moe.karla.usf.unsafe.j9.CodegenClassFile").getDeclaredMethod("generate").invoke(null);
-        } catch (Throwable ignored) {
+        if (!"false".equals(System.getProperty("moe.karla.unsafe.INLINE_METHODHANDLE"))) {
+            try {
+                Class.forName("java.lang.classfile.ClassFile");
+                return (byte[]) Class.forName("moe.karla.usf.unsafe.j9.CodegenClassFile").getDeclaredMethod("generate").invoke(null);
+            } catch (Throwable ignored) {
+            }
         }
 
 
