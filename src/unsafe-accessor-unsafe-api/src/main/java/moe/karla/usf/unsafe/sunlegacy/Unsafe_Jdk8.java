@@ -438,12 +438,42 @@ class Unsafe_Jdk8 extends moe.karla.usf.unsafe.Unsafe {
 
     @Override
     public void copySwapMemory(Object srcBase, long srcOffset, Object destBase, long destOffset, long bytes, long elemSize) {
-        throw new UnsupportedOperationException();
+        if (bytes == 0) return;
+        if (elemSize == 2L) {
+            while (bytes > 0) {
+
+                putShort(destBase, destOffset, Short.reverseBytes(getShort(srcBase, srcOffset)));
+
+                bytes -= 2L;
+                srcOffset += 2L;
+                destOffset += 2L;
+            }
+        } else if (elemSize == 4L) {
+            while (bytes > 0) {
+
+                putInt(destBase, destOffset, Integer.reverseBytes(getInt(srcBase, srcOffset)));
+
+                bytes -= 4L;
+                srcOffset += 4L;
+                destOffset += 4L;
+            }
+        } else if (elemSize == 8L) {
+            while (bytes > 0) {
+
+                putLong(destBase, destOffset, Long.reverseBytes(getLong(srcBase, srcOffset)));
+
+                bytes -= 8L;
+                srcOffset += 8L;
+                destOffset += 8L;
+            }
+        } else {
+            throw new IllegalArgumentException();
+        }
     }
 
     @Override
     public void copySwapMemory(long srcAddress, long destAddress, long bytes, long elemSize) {
-        throw new UnsupportedOperationException();
+        copySwapMemory(null, srcAddress, null, destAddress, bytes, elemSize);
     }
 
     @Override
@@ -1831,12 +1861,12 @@ class Unsafe_Jdk8 extends moe.karla.usf.unsafe.Unsafe {
 
     @Override
     public void loadLoadFence() {
-        throw new UnsupportedOperationException();
+        loadFence();
     }
 
     @Override
     public void storeStoreFence() {
-        throw new UnsupportedOperationException();
+        storeFence();
     }
 
     @Override
