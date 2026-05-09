@@ -66,4 +66,11 @@ public abstract class ModuleEditor {
      * {@link java.lang.Module#addReads(java.lang.Module)}
      */
     public abstract void addReads(@NotNull Object module, @NotNull Object targetModule);
+
+    /**
+     * {@link java.lang.ModuleLayer.Controller#enableNativeAccess(java.lang.Module)}
+     *
+     * @since 1.5.0
+     */
+    public abstract void enableNativeAccess(@NotNull Object module);
 }

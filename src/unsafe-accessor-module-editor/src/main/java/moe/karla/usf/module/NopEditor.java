@@ -22,4 +22,8 @@ class NopEditor extends ModuleEditor {
     @Override
     public void addReads(@NotNull Object module, @NotNull Object targetModule) {
     }
+
+    @Override
+    public void enableNativeAccess(@NotNull Object module) {
+    }
 }

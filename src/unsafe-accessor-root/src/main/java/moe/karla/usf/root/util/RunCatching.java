@@ -23,6 +23,10 @@ public class RunCatching<T> {
         return error;
     }
 
+    public boolean isFailure() {
+        return error != null;
+    }
+
     public RunCatching<T> recover(AnyCallable<T> supplier) {
         if (error == null && result != null) return this;
         try {
